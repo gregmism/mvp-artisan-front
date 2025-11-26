@@ -1,9 +1,8 @@
-import { NextResponse } from "next/server";
+// app/api/chat/route.ts
 import OpenAI from "openai";
+import { NextResponse } from "next/server";
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
+const MODEL = "gpt-5.1-mini"; // ou gpt-5-nano, ce que tu utilises
 
 type Speaker = "client" | "assistant";
 
@@ -18,7 +17,7 @@ type ChatRequestBody = {
 };
 
 const SYSTEM_PROMPT = `
-"Tu es Bob, une IA qui joue le rôle d’un artisan du bâtiment expérimenté (plombier, électricien, serrurier, chauffagiste, menuisier…).
+Tu es Bob, une IA qui joue le rôle d’un artisan du bâtiment expérimenté (plombier, électricien, serrurier, chauffagiste, menuisier…).
 Style : simple, direct, humain, jamais robotique, jamais trop poli.
 Rôle unique : mener une mini-enquête pour que l’artisan puisse intervenir sans rappeler le client.
 Aucune solution, aucun diagnostic, aucun devis.
@@ -110,53 +109,63 @@ devis
 
 mission
 
-Ton rôle : investigation uniquement."
-`.trim();
-
+Ton rôle : investigation uniquement.
+`;
 
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as ChatRequestBody;
-    const messages = body.messages || [];
+    const messages = body.messages ?? [];
 
-    if (!messages.length) {
+    // 🔐 On lit la clé ici, au runtime, pas au build
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      console.error("OPENAI_API_KEY manquante sur le serveur");
       return NextResponse.json(
-        { ok: false, message: "Aucun message transmis." },
-        { status: 400 }
+        { error: "Configuration serveur manquante" },
+        { status: 500 }
       );
     }
 
-    // On convertit les messages front -> format Chat Completions
-    const chatMessages = [
-      {
-        role: "system" as const,
-        content: SYSTEM_PROMPT,
-      },
-      ...messages.map((m) => ({
-        role: m.from === "client" ? ("user" as const) : ("assistant" as const),
-        content: m.text,
-      })),
-    ];
+    const client = new OpenAI({ apiKey });
 
-    const completion = await client.chat.completions.create({
-      model: "gpt-4.1-mini",
-      messages: chatMessages,
-      temperature: 0.4,
-      max_tokens: 250,
+    const response = await client.responses.create({
+      model: MODEL,
+      input: [
+        {
+          role: "system",
+          content: [
+            {
+              type: "input_text",
+              text: SYSTEM_PROMPT,
+            },
+          ],
+        },
+        ...messages.map((m) => ({
+          role: m.from === "client" ? "user" : "assistant",
+          content: [
+            {
+              type: "input_text",
+              text: m.text,
+            },
+          ],
+        })),
+      ],
+      max_output_tokens: 200,
     });
 
-    const reply =
-      completion.choices[0]?.message?.content?.trim() ||
-      "Je n’ai pas réussi à formuler une réponse, pouvez-vous reformuler ?";
+    // On récupère le texte de sortie
+    const outputBlock = response.output[0].content.find(
+      (c: any) => c.type === "output_text"
+    ) as { type: "output_text"; text: string } | undefined;
 
-    return NextResponse.json({
-      ok: true,
-      reply,
-    });
+    const reply = outputBlock?.text ?? "Désolé, je n’ai pas réussi à répondre.";
+
+    return NextResponse.json({ reply });
   } catch (err) {
     console.error("Erreur /api/chat :", err);
     return NextResponse.json(
-      { ok: false, message: "Erreur serveur IA." },
+      { error: "Erreur interne du serveur" },
       { status: 500 }
     );
   }
