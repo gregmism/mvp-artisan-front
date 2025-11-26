@@ -198,7 +198,6 @@ export default function App() {
 
     const updatedMessages = [...messages, newMsg];
 
-    // On affiche tout de suite le message du client
     setMessages(updatedMessages);
     setChatInput("");
     setIsChatLoading(true);
@@ -215,7 +214,6 @@ export default function App() {
       const data = await res.json();
       console.log("Réponse /api/chat :", res.status, data);
 
-      // Cas erreur API (status HTTP ou payload avec erreur)
       if (!res.ok || data?.error) {
         console.error("Erreur /api/chat :", data);
         const errorMsg: Message = {
@@ -460,7 +458,6 @@ export default function App() {
     for (let col = 0; col < days.length; col++) {
       const rows: number[] = [];
 
-      // On récupère tous les rowIdx sélectionnés pour cette colonne (jour)
       for (let row = 0; row < totalSlots; row++) {
         const id = slotIdFromIndex(row, col);
         if (selected.has(id)) rows.push(row);
@@ -476,7 +473,6 @@ export default function App() {
       for (let i = 1; i <= rows.length; i++) {
         const current = rows[i];
 
-        // Si on casse la continuité ou qu'on est à la fin -> on clôt un bloc
         if (current !== prevRow + 1) {
           const startMinutes = startHour * 60 + startRow * 15;
           const endMinutes = startHour * 60 + (prevRow + 1) * 15;
@@ -556,7 +552,6 @@ export default function App() {
         return;
       }
 
-      // Succès : on affiche l'écran de confirmation
       setStep("confirmation");
     } catch (err) {
       console.error("Erreur réseau /api/request :", err);
@@ -571,8 +566,11 @@ export default function App() {
     bottomButton?: React.ReactNode,
     header?: React.ReactNode
   ) => (
-    <main className="min-h-screen bg-white flex justify-center">
-      <div className="w-full max-w-[420px] h-screen flex flex-col px-5 pt-6 pb-4">
+    <main className="min-h-[100dvh] h-[100dvh] bg-white flex justify-center overflow-hidden">
+      <div
+        className="w-full max-w-[420px] h-full flex flex-col px-5 pt-6"
+        style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+      >
         {header && <div className="mb-4">{header}</div>}
         <div className="flex-1 flex flex-col items-center text-center overflow-hidden">
           {content}
@@ -650,10 +648,8 @@ export default function App() {
                 );
               }
 
-              // Assistant message
               return (
                 <div key={msg.id} className="flex justify-start">
-                  {/* Colonne avatar */}
                   <div className="mr-2 flex items-end">
                     {isLastAssistant ? (
                       <img
@@ -916,9 +912,10 @@ export default function App() {
     );
 
   const renderAvailability = () => (
-    <main className="min-h-screen bg-white flex justify-center">
+    <main className="min-h-[100dvh] h-[100dvh] bg-white flex justify-center overflow-hidden">
       <div
-        className="w-full max-w-[420px] h-screen flex flex-col px-5 pt-6 pb-4"
+        className="w-full max-w-[420px] h-full flex flex-col px-5 pt-6"
+        style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeaveSlot}
         onTouchMove={handleTouchMove}
@@ -930,7 +927,6 @@ export default function App() {
         })}
 
         <div className="flex-1 flex flex-col overflow-hidden relative">
-          {/* Tooltip flottant */}
           {hoverTooltip && (
             <div
               className="
@@ -1034,7 +1030,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Mention explicative sous le tableau */}
           <p className="mt-2 text-[11px] text-center">
             Glissez votre doigt sur les plages horaires disponibles.
           </p>
@@ -1172,10 +1167,10 @@ function Field({
         onChange={(e) => {
           let v = e.target.value;
           if (numeric) {
-            v = v.replace(/[^0-9]/g, ""); // chiffres uniquement
+            v = v.replace(/[^0-9]/g, "");
           }
           if (typeof maxLength === "number") {
-            v = v.slice(0, maxLength); // coupe à maxLength
+            v = v.slice(0, maxLength);
           }
           onChange(v);
         }}
