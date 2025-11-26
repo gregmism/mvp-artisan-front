@@ -1256,7 +1256,7 @@ function Header({ title, showBack, onBack }: HeaderProps) {
   return (
     <div className="flex items-center">
       <div className="w-[60px] flex justify-start">
-        {showBack && onBack && <BackButton onBack={onBack} />}
+        {showBack && onBack && <BackButton onClick={onBack} />}
       </div>
       <div className="flex-1 flex justify-center">
         <h1 className="text-xl font-semibold text-center">{title}</h1>
