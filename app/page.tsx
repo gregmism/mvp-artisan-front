@@ -649,7 +649,10 @@ export default function App() {
           </div>
         </header>
 
-        <div className="w-full flex-1 overflow-y-auto border-t border-b py-3">
+        <div
+          className="w-full flex-1 overflow-y-auto border-t border-b py-3"
+          style={{ WebkitOverflowScrolling: "touch" }} // scroll fluide iOS
+        >
           <div className="space-y-2 px-3">
             {messages.map((msg, index) => {
               const isClient = msg.from === "client";
@@ -712,7 +715,7 @@ export default function App() {
           <div className="flex-1 flex items-center border rounded-full px-3 py-2 bg-white">
             <input
               type="text"
-              className="flex-1 text-sm outline-none"
+              className="flex-1 text-base outline-none" // ≥16px pour éviter le zoom iOS
               placeholder="Écrire un message..."
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
@@ -1141,7 +1144,7 @@ function Field({
   maxLength,
 }: FieldProps) {
   const baseClass =
-    "w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 placeholder:text-zinc-400";
+    "w-full border rounded-md px-3 py-2 text-base focus:outline-none focus:ring-1 placeholder:text-zinc-400"; // text-base pour éviter zoom iOS
   const borderClass = error
     ? "border-red-500 focus:ring-red-500"
     : "border-zinc-300 focus:ring-black";
