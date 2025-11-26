@@ -212,25 +212,30 @@ export default function App() {
         body: JSON.stringify({ messages: updatedMessages }),
       });
 
-      const data = await res.json().catch(() => null);
+      const data = await res.json();
+      console.log("Réponse /api/chat :", res.status, data);
 
-      if (!res.ok || !data?.ok) {
+      // Cas erreur API (status HTTP ou payload avec erreur)
+      if (!res.ok || data?.error) {
         console.error("Erreur /api/chat :", data);
         const errorMsg: Message = {
           id: Date.now() + 1,
           from: "assistant",
           text:
-            data?.message ??
+            data?.error ??
             "Je rencontre un problème pour répondre, pouvez-vous réessayer dans un instant ?",
         };
         setMessages((prev) => [...prev, errorMsg]);
         return;
       }
 
+      const replyText: string =
+        data?.reply ?? "Désolé, je n’ai pas réussi à répondre.";
+
       const assistantMsg: Message = {
         id: Date.now() + 1,
         from: "assistant",
-        text: data.reply,
+        text: replyText,
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
@@ -652,7 +657,7 @@ export default function App() {
                   <div className="mr-2 flex items-end">
                     {isLastAssistant ? (
                       <img
-                        src="/bob-avatar.png"
+                        src="/BOB-AVATAR.png"
                         alt="Avatar Bob"
                         className="w-7 h-7 rounded-full border border-zinc-300"
                       />
@@ -1251,7 +1256,7 @@ function Header({ title, showBack, onBack }: HeaderProps) {
   return (
     <div className="flex items-center">
       <div className="w-[60px] flex justify-start">
-        {showBack && onBack && <BackButton onClick={onBack} />}
+        {showBack && onBack && <BackButton onBack={onBack} />}
       </div>
       <div className="flex-1 flex justify-center">
         <h1 className="text-xl font-semibold text-center">{title}</h1>
