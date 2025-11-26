@@ -3,6 +3,7 @@
 import React, {
   useState,
   useRef,
+  useEffect,
   FormEvent,
   TouchEvent,
   MouseEvent,
@@ -171,6 +172,29 @@ function validateLocation(
 export default function App() {
   const [step, setStep] = useState<Step>("welcome");
 
+  // 🔒 Bloquer le scroll global (html + body) pendant que cette page est montée
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverflow = body.style.overflow;
+    const prevHtmlOverscroll = (html.style as any).overscrollBehavior;
+    const prevBodyOverscroll = (body.style as any).overscrollBehavior;
+
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    (html.style as any).overscrollBehavior = "none";
+    (body.style as any).overscrollBehavior = "none";
+
+    return () => {
+      html.style.overflow = prevHtmlOverflow;
+      body.style.overflow = prevBodyOverflow;
+      (html.style as any).overscrollBehavior = prevHtmlOverscroll;
+      (body.style as any).overscrollBehavior = prevBodyOverscroll;
+    };
+  }, []);
+
   // --- CHAT ---
   const [messages, setMessages] = useState<Message[]>([
     { id: 1, from: "assistant", text: "Dites-moi ce qui se passe." },
@@ -312,7 +336,6 @@ export default function App() {
   const [isDragging, setIsDragging] = useState(false);
   const [dragMode, setDragMode] = useState<"add" | "remove">("add");
 
-  // tooltip flottant à côté de la souris
   const [hoverTooltip, setHoverTooltip] = useState<{
     label: string;
     x: number;
