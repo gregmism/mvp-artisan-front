@@ -2,7 +2,7 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 
-const MODEL = "gpt-4.1-mini"; // modèle stable et dispo sur l'API
+const MODEL = "gpt-4.1-mini"; // tu peux mettre un autre modèle compatible chat.completions si tu veux
 
 type Speaker = "client" | "assistant";
 
@@ -51,18 +51,21 @@ export async function POST(req: Request) {
 
     const client = new OpenAI({ apiKey });
 
+    // On construit les messages pour l'API en assouplissant le typage
+    const chatMessages: any[] = [
+      {
+        role: "system",
+        content: SYSTEM_PROMPT,
+      },
+      ...messages.map((m) => ({
+        role: m.from === "client" ? "user" : "assistant",
+        content: m.text,
+      })),
+    ];
+
     const completion: any = await client.chat.completions.create({
       model: MODEL,
-      messages: [
-        {
-          role: "system",
-          content: SYSTEM_PROMPT,
-        },
-        ...messages.map((m) => ({
-          role: m.from === "client" ? "user" : "assistant",
-          content: m.text,
-        })),
-      ],
+      messages: chatMessages as any,
       max_tokens: 200,
     });
 
