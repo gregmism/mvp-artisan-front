@@ -172,7 +172,7 @@ function validateLocation(
 export default function App() {
   const [step, setStep] = useState<Step>("welcome");
 
-  // 🔒 Bloquer le scroll global (html + body) pendant que cette page est montée
+  // 🔒 Bloquer le scroll global (html + body)
   useEffect(() => {
     const html = document.documentElement;
     const body = document.body;
@@ -651,7 +651,7 @@ export default function App() {
 
         <div
           className="w-full flex-1 overflow-y-auto border-t border-b py-3"
-          style={{ WebkitOverflowScrolling: "touch" }} // scroll fluide iOS
+          style={{ WebkitOverflowScrolling: "touch" }}
         >
           <div className="space-y-2 px-3">
             {messages.map((msg, index) => {
@@ -715,7 +715,7 @@ export default function App() {
           <div className="flex-1 flex items-center border rounded-full px-3 py-2 bg-white">
             <input
               type="text"
-              className="flex-1 text-base outline-none" // ≥16px pour éviter le zoom iOS
+              className="flex-1 text-base outline-none"
               placeholder="Écrire un message..."
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
@@ -752,6 +752,7 @@ export default function App() {
             placeholder="Dupont"
             value={contact.lastName}
             error={contactErrors.lastName}
+            autoComplete="family-name"
             onChange={(v) => {
               setContact((c) => ({ ...c, lastName: v }));
               setContactErrors((e) => ({ ...e, lastName: undefined }));
@@ -762,6 +763,7 @@ export default function App() {
             placeholder="Jean"
             value={contact.firstName}
             error={contactErrors.firstName}
+            autoComplete="given-name"
             onChange={(v) => {
               setContact((c) => ({ ...c, firstName: v }));
               setContactErrors((e) => ({ ...e, firstName: undefined }));
@@ -772,6 +774,8 @@ export default function App() {
             placeholder="jean.dupont@email.com"
             value={contact.email}
             error={contactErrors.email}
+            type="email"
+            autoComplete="email"
             onChange={(v) => {
               setContact((c) => ({ ...c, email: v }));
               setContactErrors((e) => ({ ...e, email: undefined }));
@@ -784,6 +788,7 @@ export default function App() {
             error={contactErrors.phone}
             numeric
             maxLength={10}
+            autoComplete="tel"
             onChange={(v) => {
               setContact((c) => ({ ...c, phone: v }));
               setContactErrors((e) => ({ ...e, phone: undefined }));
@@ -806,6 +811,8 @@ export default function App() {
                 placeholder="24"
                 value={location.number}
                 error={locationErrors.number}
+                numeric={false}
+                autoComplete="address-line1"
                 onChange={(v) => {
                   setLocation((l) => ({ ...l, number: v }));
                   setLocationErrors((e) => ({ ...e, number: undefined }));
@@ -818,6 +825,7 @@ export default function App() {
                 placeholder="Rue de la Paix"
                 value={location.street}
                 error={locationErrors.street}
+                autoComplete="street-address"
                 onChange={(v) => {
                   setLocation((l) => ({ ...l, street: v }));
                   setLocationErrors((e) => ({ ...e, street: undefined }));
@@ -835,6 +843,7 @@ export default function App() {
                 error={locationErrors.postalCode}
                 numeric
                 maxLength={5}
+                autoComplete="postal-code"
                 onChange={(v) => {
                   setLocation((l) => ({ ...l, postalCode: v }));
                   setLocationErrors((e) => ({ ...e, postalCode: undefined }));
@@ -847,6 +856,7 @@ export default function App() {
                 placeholder="Paris"
                 value={location.city}
                 error={locationErrors.city}
+                autoComplete="address-level2"
                 onChange={(v) => {
                   setLocation((l) => ({ ...l, city: v }));
                   setLocationErrors((e) => ({ ...e, city: undefined }));
@@ -882,6 +892,7 @@ export default function App() {
               value={location.floor}
               error={locationErrors.floor}
               numeric
+              autoComplete="off"
               onChange={(v) => {
                 setLocation((l) => ({ ...l, floor: v }));
                 setLocationErrors((e) => ({ ...e, floor: undefined }));
@@ -895,6 +906,7 @@ export default function App() {
               placeholder="B12#"
               value={location.accessCode1}
               error={locationErrors.accessCode1}
+              autoComplete="off"
               onChange={(v) => {
                 setLocation((l) => ({ ...l, accessCode1: v }));
                 setLocationErrors((e) => ({
@@ -908,6 +920,7 @@ export default function App() {
               placeholder="1234"
               value={location.accessCode2}
               error={locationErrors.accessCode2}
+              autoComplete="off"
               onChange={(v) => {
                 setLocation((l) => ({ ...l, accessCode2: v }));
                 setLocationErrors((e) => ({
@@ -923,11 +936,12 @@ export default function App() {
             placeholder="Interphone en panne, 3e étage sans ascenseur..."
             value={location.notes}
             error={locationErrors.notes}
+            multiline
+            autoComplete="off"
             onChange={(v) => {
               setLocation((l) => ({ ...l, notes: v }));
               setLocationErrors((e) => ({ ...e, notes: undefined }));
             }}
-            multiline
           />
         </div>
       </>,
@@ -1131,6 +1145,8 @@ type FieldProps = {
   error?: string;
   numeric?: boolean;
   maxLength?: number;
+  type?: string;
+  autoComplete?: string;
 };
 
 function Field({
@@ -1142,9 +1158,11 @@ function Field({
   error,
   numeric,
   maxLength,
+  type = "text",
+  autoComplete = "on",
 }: FieldProps) {
   const baseClass =
-    "w-full border rounded-md px-3 py-2 text-base focus:outline-none focus:ring-1 placeholder:text-zinc-400"; // text-base pour éviter zoom iOS
+    "w-full border rounded-md px-3 py-2 text-base focus:outline-none focus:ring-1 placeholder:text-zinc-400";
   const borderClass = error
     ? "border-red-500 focus:ring-red-500"
     : "border-zinc-300 focus:ring-black";
@@ -1157,6 +1175,9 @@ function Field({
           className={`${baseClass} ${borderClass} min-h-[60px]`}
           value={value}
           placeholder={placeholder}
+          autoComplete={autoComplete}
+          autoCorrect="off"
+          spellCheck={false}
           onChange={(e) => onChange(e.target.value)}
         />
         {error && (
@@ -1173,9 +1194,13 @@ function Field({
       <label className="block text-xs font-medium mb-1">{label}</label>
       <input
         className={`${baseClass} ${borderClass}`}
+        type={type}
         value={value}
         placeholder={placeholder}
         inputMode={numeric ? "numeric" : "text"}
+        autoComplete={autoComplete}
+        autoCorrect="off"
+        spellCheck={false}
         onKeyDown={(e) => {
           if (numeric) {
             const allowedKeys = [
