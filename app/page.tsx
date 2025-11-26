@@ -657,7 +657,7 @@ export default function App() {
                   <div className="mr-2 flex items-end">
                     {isLastAssistant ? (
                       <img
-                        src="/BOB-AVATAR.png"
+                        src="/bob-avatar.jpeg"
                         alt="Avatar Bob"
                         className="w-7 h-7 rounded-full border border-zinc-300"
                       />
