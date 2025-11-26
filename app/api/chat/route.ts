@@ -2,7 +2,7 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 
-const MODEL = "gpt-5.1-mini"; // ou "gpt-5-nano" si tu préfères
+const MODEL = "gpt-4.1-mini"; // modèle stable et dispo sur l'API
 
 type Speaker = "client" | "assistant";
 
@@ -40,7 +40,6 @@ export async function POST(req: Request) {
     const body = (await req.json()) as ChatRequestBody;
     const messages = body?.messages ?? [];
 
-    // 🔐 On lit la clé ici, au runtime
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       console.error("OPENAI_API_KEY manquante sur le serveur");
@@ -52,51 +51,24 @@ export async function POST(req: Request) {
 
     const client = new OpenAI({ apiKey });
 
-    // On construit l'input pour l'API Responses
-    const input: any[] = [
-      {
-        role: "system",
-        content: [
-          {
-            type: "input_text",
-            text: SYSTEM_PROMPT,
-          },
-        ],
-      },
-      ...messages.map((m) => ({
-        role: m.from === "client" ? "user" : "assistant",
-        content: [
-          {
-            type: "input_text",
-            text: m.text,
-          },
-        ],
-      })),
-    ];
-
-    const response: any = await client.responses.create({
+    const completion: any = await client.chat.completions.create({
       model: MODEL,
-      input,
-      max_output_tokens: 200,
+      messages: [
+        {
+          role: "system",
+          content: SYSTEM_PROMPT,
+        },
+        ...messages.map((m) => ({
+          role: m.from === "client" ? "user" : "assistant",
+          content: m.text,
+        })),
+      ],
+      max_tokens: 200,
     });
 
-    // Récupération du texte de sortie
-    let reply = "Désolé, je n’ai pas réussi à répondre.";
-
-    const output = response?.output;
-    if (Array.isArray(output) && output.length > 0) {
-      const firstItem = output[0];
-      const content = firstItem?.content;
-
-      if (Array.isArray(content)) {
-        const textBlock = content.find(
-          (c: any) => c.type === "output_text"
-        );
-        if (textBlock && typeof textBlock.text === "string") {
-          reply = textBlock.text;
-        }
-      }
-    }
+    const reply =
+      completion?.choices?.[0]?.message?.content?.trim() ??
+      "Désolé, je n’ai pas réussi à répondre.";
 
     return NextResponse.json({ reply });
   } catch (err) {
